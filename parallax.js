@@ -1,18 +1,20 @@
+// location.replace( '#id' ) -- changes hash URI without history state
+
 $(function(){
 	var animations = []
-	  ,   animTags = $( 'animation' )
-	  ,  $scroller = $( '#scroller' )
+	  ,  $animTags = $( 'animation' )
+	  ,  $scroller = $( '#mock-scroller' )
 	  ,   $content = $( '#content' )
 	  ,  ttlHeight = 0
 	  , i, l, j, m, anim, attr, windowHeight, $anim;
 
-	for( i=0, l=animTags.length; i<l; i++ ){
-		$anim = $( animTags[i] );
+	for( i=0, l=$animTags.length; i<l; i++ ){
+		$anim = $( $animTags[i] );
 		anim  = {
 			     from : {}
 			,      to : {}
 			, domNode : $anim.parent()
-			, thisAnim: animTags[i]
+			, thisAnim: $animTags[i]
 		};
 
 		for( j=0, m=$anim[0].attributes.length; j<m; j++ ){
