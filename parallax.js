@@ -1,5 +1,3 @@
-// location.replace( '#id' ) -- changes hash URI without history state
-
 $(function(){
 	var     $window = $( window )
 	  ,       $body = $( 'body' )
@@ -8,7 +6,7 @@ $(function(){
 	  ,   $scroller = $( '#mock-scroller' )
 	  , fScrPercent = 0
 	  ,  aAnimProps = [ 'opacity', 'left', 'top', 'width', 'height', 'background-position' ]
-	  , iAnimTimeout, iWindowHeight, aAnimations
+	  , iAnimTimeout, iWindowHeight, aAnimations, sLastHash
 	  ;
 
 	// find all animatable nodes and store properties
@@ -54,6 +52,7 @@ $(function(){
 		}
 	}
 
+	// reads all listed css properties from $node with sClass applied
 	function readCSSProps( $node, sClass ){
 		var oObj = {}
 		  , i, l, vPropVal, sProp
@@ -95,6 +94,7 @@ $(function(){
 		return oObj;
 	}
 
+	// determines if two values are equal if they are basic types or arrays
 	function eq( vVal1, vVal2 ){
 		var i, l;
 
@@ -116,6 +116,7 @@ $(function(){
 		return false;
 	}
 
+	// returns properties that differ between two objects
 	function propDiff( oProps1, oProps2 ){
 		var oDiff = {}
 		  , n, bProp;
@@ -129,13 +130,15 @@ $(function(){
 		return bProp && oDiff;
 	}
 
-	function addDiffAnimation( $node, iTop, iStage, iStartStage ){
-		if( null == iStartStage ){ iStartStage = iStage - 1; }
-
+	// given a node, top & stage, stores an animation for the node
+	function addDiffAnimation( $node, iTop, iStage ){
 		var      stages = [ 'start', '', 'to', 'end' ]
+		  , iStartStage = iStage - 1
 		  ,   sEndStage = stages[ iStage ]
 		  ,   oPropsEnd = readCSSProps( $node, sEndStage )
-		  , oPropDiff
+		  ,       oData = $node.data()
+		  , iAnimLength = 0
+		  , oPropDiff, n, iDiff
 		  ;
 
 		// get the diff between this stage and the most recent prior one with a change
@@ -145,24 +148,41 @@ $(function(){
 
 		if( !oPropDiff ){ return 0; }
 
-		console.log( oPropDiff, sEndStage, iStartStage );
+		for( n in oPropDiff ){
+			iDiff = Math.abs( oPropDiff[n][1] - oPropDiff[n][0] );
+			if( iDiff > iAnimLength ){ iAnimLength = iDiff; }
+		}
+
+		aAnimations.push( {
+			     $node : $node
+			,   oProps : oPropDiff
+			,     iTop : iTop
+			,  iBottom : iTop + iAnimLength
+			, bSection : oData.bSection
+		} );
+
+		return oData.bDetached ? 0 : iAnimLength;
 	}
 
 	// window loaded or re-sized, re-calculate all dimensions
 	function measureAnimations(){
-		var        iTop = 0
-		  , iStartTimer = +new Date()
+		var         iTop = 0
+		  ,  iStartTimer = +new Date()
+		  , iLastSection = $sections.length - 1
+		  ,  iPageHeight = 0
+		  , oAnim, oData
 		  ;
 
 		aAnimations = [];
 		$scroller.css( 'height', 10000 );
 
+		// add animations for each section & .animate tag in each section
 		$sections.each( function( ix ){
 			var       $sec = $( this )
 			  ,      oData = $sec.data()
 			  ,    $pNodes = oData.$pNodes
 			  , iSecHeight = 0
-			  ,  iMaxPause = 0
+			  ,  iMaxPause = oData.iPause
 			  , i, l, iAnimSize, $pNode
 			  ;
 
@@ -174,27 +194,62 @@ $(function(){
 				.appendTo( $content );
 
 			if( ix ){
-				iSecHeight = addDiffAnimation( $sec, iTop, 1 );
+				iSecHeight = Math.max( addDiffAnimation( $sec, iTop, 1 ), $sec.outerHeight() );
 			}
-
+console.log( iSecHeight );
 			for( i=0, l=$pNodes.length; i<l; i++ ){
 				$pNode = $pNodes.eq( i );
 				iMaxPause = Math.max(
-					  oData.iPause
+					  iMaxPause
 					,             addDiffAnimation( $pNode, iTop                         , 1 )
 					, iAnimSize = addDiffAnimation( $pNode, iTop + iSecHeight            , 2 )
 					,             addDiffAnimation( $pNode, iTop + iSecHeight + iAnimSize, 3 )
 				);
 			}
 
+			if( ix ){
+				iTop += iMaxPause;
+			}
+
 			addDiffAnimation( $sec, iTop + iSecHeight, 2 );
-			addDiffAnimation( $sec, iTop + iSecHeight, 3 );
+
+			if( ix < iLastSection ){
+				addDiffAnimation( $sec, iTop + iSecHeight, 3 );
+			}
 
 			$sec.detach();
 
 			oData.endsAt = iTop += iSecHeight;
 		} );
 
+		// wipe start/end positions on sections
+		for( i=0, l=$sections.length; i<l; i++ ){
+			$sections.eq(i).data().iTop    = Infinity;
+			$sections.eq(i).data().iBottom = -Infinity;
+		}
+
+		// post-process animations
+		for( i=0, l=aAnimations.length; i<l; i++ ){
+			oAnim = aAnimations[i];
+
+			if( oAnim.iBottom > iPageHeight ){
+				iPageHeight = oAnim.iBottom;
+			}
+
+			if( oAnim.bSection ){
+				oData = oAnim.$node.data();
+				if( oAnim.iTop < oData.iTop ){
+					oData.iTop = oAnim.iTop;
+				}
+
+				if( oAnim.iBottom > oData.iBottom ){
+					oData.iBottom = oAnim.iBottom;
+				}
+			}
+		}
+		$scroller.css( 'height', iPageHeight );
+window.$sections = $sections;
+window.aAnimations = aAnimations;
 		console.log( 'measurements took ' + ( new Date() - iStartTimer ) + 'ms' )
 	}
 
@@ -204,7 +259,53 @@ $(function(){
 	}
 
 	function onScroll(){
-		
+		var iScrTop = $window.scrollTop()
+		  , i, l, oAnim, $sec, oData
+		  , bChangedLoc = false
+		  , $node, sSecId, n, oCssProps, oProps
+		  ;
+
+		if( iScrTop < 0 ){ iScrTop = 0; }
+
+		// hide/show sections
+		for( i=0, l=$sections.length; i<l; i++ ){
+			$sec  = $sections.eq(i);
+			oData = $sec.data();
+
+			if( ( oData.iTop <= iScrTop ) && ( oData.iBottom >= ( iScrTop/* + iWindowHeight*/ ) ) ){
+				if( !oData.bVisible ){
+					$sec.appendTo( $content );
+					oData.bVisible = true;
+				}
+				if( !bChangedLoc ){
+					if( sLastHash != ( sSecId = $sec.attr( 'id' ) ) ){
+						/*location.replace*/( '#' + ( sLastHash = sSecId ) );
+					}
+					bChangedLoc = true;
+				}
+			}else{
+				if( oData.bVisible ){
+					$sec.detach();
+					oData.bVisible = false;
+				}
+			}
+		}
+
+		for( i=0, l=aAnimations.length; i<l; i++ ){
+			oAnim = aAnimations[i];
+			$node = oAnim.$node;
+
+			if( ( oAnim.iTop > iScrTop ) || ( oAnim.iBottom < iScrTop ) ){ continue; }
+
+			// in the middle of an animation
+			oCssProps = {};
+			oProps = oAnim.oProps;
+			for( n in oProps ){
+				oCssProps[n] = ( iScrTop - oAnim.iTop ) / ( oAnim.iBottom - oAnim.iTop ) * ( oProps[n][1] - oProps[n][0] ) + oProps[n][0];
+				//oCssProps[n] = 0|-( ( iScrTop - oProps[n][0] ) / ( oProps[n][1] - oProps[n][0] ) * ( oProps[n][1] - oProps[n][0] ) + oProps[n][0] );
+			}
+			$node.css( oCssProps );
+		}
 	}
 
 	$window
