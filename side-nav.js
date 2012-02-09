@@ -1,13 +1,18 @@
 $(function(){
-	var $nav = $( '#nav' );
+	var   $nav = $( '#nav' )
+	  , aRules = [];
 
 	$sections.each( function(){
 		var  $this = $( this )
 		  , sTitle = $this.attr( 'data-nav' ) || $this.find( 'h2:first' ).text()
-		  ,    sId = $this.attr( 'id' ).split( '-' ).pop();
+		  ,    sId = $this.attr( 'id' ).split( '-' ).pop()
+		  ;
 
-		$nav.append( '<li><h1><span>' + sTitle + '</span></h1><a href="#' + sId + '">' + sId + '</a></li>' )
+		aRules.push( 'body.section-' + sId + ' #nav li.' + sId + ' a');
+		$nav.append( '<li class="' + sId + '"><h1><span>' + sTitle + '</span></h1><a href="#' + sId + '">' + sId + '</a></li>' )
 	} );
+
+	$( '<style>' + aRules.join( ', ' ) + '{ background : url( ./resources/images/grey-pink-dot.png ) 0 100% no-repeat; }</style>' ).appendTo( $( 'head' ) );
 
 	$nav
 		.on( 'click', 'a', function(){
