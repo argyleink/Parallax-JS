@@ -86,7 +86,7 @@ $(function(){
 
 				// split numeric properties
 				case 'background-position':
-					vPropVal = $node.css( sProp ).split( ' ' );
+					vPropVal = ( $node.css( sProp ) || '' ).split( ' ' );
 					vPropVal[0] = parseUnit( vPropVal[0], $node, 'outerWidth'  );
 					vPropVal[1] = parseUnit( vPropVal[1], $node, 'outerHeight' );
 					break;
