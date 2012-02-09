@@ -86,7 +86,7 @@ $(function(){
 
 				// split numeric properties
 				case 'background-position':
-					vPropVal = ( $node.css( sProp ) || '' ).split( ' ' );
+					vPropVal = ( $node.css( sProp ) || '0 0' ).split( ' ' );
 					vPropVal[0] = parseUnit( vPropVal[0], $node, 'outerWidth'  );
 					vPropVal[1] = parseUnit( vPropVal[1], $node, 'outerHeight' );
 					break;
@@ -351,9 +351,9 @@ $(function(){
 		  ,   top = oData.iTop + ( $sections[0] === $sect[0] ? 0 : iWindowHeight + 1 );
 
 		if( immediate ){
-			$body.scrollTop( top );
+			$body.add( 'html' ).scrollTop( top );
 		}else{
-			$body.animate({ scrollTop: top }, 1000);
+			$body.add( 'html' ).animate({ scrollTop: top }, 1000);
 		}
 	}
 
