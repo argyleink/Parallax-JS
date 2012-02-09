@@ -6,8 +6,12 @@ $(function(){
 	  ,   $scroller = $( '#mock-scroller' )
 	  , fScrPercent = 0
 	  ,  aAnimProps = [ 'opacity', 'left', 'top', 'width', 'height', 'background-position' ]
+	  ,       sHash = location.hash
 	  , iAnimTimeout, iWindowHeight, aAnimations, sLastHash, iMaxHeight
 	  ;
+
+	window.$sections   = $sections;
+	window.aAnimations = aAnimations;
 
 	// find all animatable nodes and store properties
 	$sections.each( function( ix ){
@@ -250,8 +254,6 @@ $(function(){
 			}
 		}
 		$scroller.css( 'height', ( iMaxHeight = iPageHeight ) + iWindowHeight );
-window.$sections = $sections;
-window.aAnimations = aAnimations;
 	}
 
 	function onResize(){
@@ -297,8 +299,9 @@ window.aAnimations = aAnimations;
 					oData.bVisible = true;
 				}
 				if( !bChangedLoc ){
-					if( sLastHash != ( sSecId = $sec.attr( 'id' ) ) ){
-						location.replace( '#' + ( sLastHash = sSecId ).split( '-' ).pop() );
+					if( sLastHash != ( sSecId = $sec.attr( 'id' ).split( '-' ).pop() ) ){
+						location.replace( '#' + ( sLastHash = sSecId ) );
+						$body.prop( 'class', $body.prop( 'class' ).replace( /(?: |^)section-[^ ]+/g, '' ) ).addClass( 'section-' + sSecId );
 					}
 					bChangedLoc = true;
 				}
@@ -339,6 +342,24 @@ window.aAnimations = aAnimations;
 			}
 			$node.css( oCssProps );
 		}
+	}
+
+	window.scrollToSection = function( sSec, immediate ){
+		var $sect = $sections.filter( '#story-' + sSec )
+		  , oData = $sect.data()
+		  ,   top = oData.iTop + ( $sections[0] === $sect[0] ? 0 : iWindowHeight + 1 );
+
+		if( immediate ){
+			$body.scrollTop( top );
+		}else{
+			$body.animate({ scrollTop: top }, 1000);
+		}
+	}
+
+	if( sHash ){
+		setTimeout( function(){
+			scrollToSection( sHash.substr( 1 ), true );
+		}, 100 );
 	}
 
 	$window
