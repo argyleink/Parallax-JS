@@ -58,7 +58,7 @@ $(function(){
 		  , i, l, vPropVal, sProp
 		  ;
 
-		$node.removeClass( 'start to end' ).addClass( sClass );
+		$node.addClass( sClass );
 
 		for( i=0, l=aAnimProps.length; i<l; i++ ){
 			sProp = aAnimProps[i];
@@ -90,6 +90,8 @@ $(function(){
 
 			oObj[ sProp ] = vPropVal;
 		}
+
+		$node.removeClass( sClass );
 
 		return oObj;
 	}
@@ -131,15 +133,16 @@ $(function(){
 	}
 
 	// given a node, top & stage, stores an animation for the node
-	function addDiffAnimation( $node, iTop, iStage ){
-		var      stages = [ 'start', '', 'to', 'end' ]
+	function addDiffAnimation( $node, iTop, iStage, iAnimLength ){
+		var      stages = [ 'start', 'focus', 'to', 'end' ]
 		  , iStartStage = iStage - 1
 		  ,   sEndStage = stages[ iStage ]
 		  ,   oPropsEnd = readCSSProps( $node, sEndStage )
 		  ,       oData = $node.data()
-		  , iAnimLength = 0
 		  , oPropDiff, n, iDiff
 		  ;
+
+		if( !iAnimLength ){ iAnimLength = 0; }
 
 		// get the diff between this stage and the most recent prior one with a change
 		//while( !( 
@@ -194,16 +197,16 @@ $(function(){
 				.appendTo( $content );
 
 			if( ix ){
-				iSecHeight = Math.max( addDiffAnimation( $sec, iTop, 1 ), $sec.outerHeight() );
+				iSecHeight = addDiffAnimation( $sec, iTop, 1 );
 			}
-console.log( iSecHeight );
+
 			for( i=0, l=$pNodes.length; i<l; i++ ){
 				$pNode = $pNodes.eq( i );
 				iMaxPause = Math.max(
 					  iMaxPause
-					,             addDiffAnimation( $pNode, iTop                         , 1 )
-					, iAnimSize = addDiffAnimation( $pNode, iTop + iSecHeight            , 2 )
-					,             addDiffAnimation( $pNode, iTop + iSecHeight + iAnimSize, 3 )
+					,             addDiffAnimation( $pNode, iTop                         , 1, iSecHeight )
+					, iAnimSize = addDiffAnimation( $pNode, iTop + iSecHeight            , 2, iSecHeight )
+					,             addDiffAnimation( $pNode, iTop + iSecHeight + iAnimSize, 3, iSecHeight )
 				);
 			}
 
@@ -258,6 +261,20 @@ window.aAnimations = aAnimations;
 		onScroll();
 	}
 
+	function singlePartialCSSProp( iScrTop, oAnim, oProp ){
+		return ( iScrTop - oAnim.iTop ) / ( oAnim.iBottom - oAnim.iTop ) * ( oProp[1] - oProp[0] ) + oProp[0];
+	}
+
+	function partialCSSProp( iScrTop, oAnim, oProp ){
+		if( oProp[0].splice ){
+			return $.map( oProp[0], function( nul, ix ){
+				return ( 0|singlePartialCSSProp( iScrTop, oAnim, [ oProp[0][ix], oProp[1][ix] ] ) ) + 'px';
+			} ).join( ' ' );
+		}else{
+			return singlePartialCSSProp( iScrTop, oAnim, oProp );
+		}
+	}
+
 	function onScroll(){
 		var iScrTop = $window.scrollTop()
 		  , i, l, oAnim, $sec, oData
@@ -301,7 +318,7 @@ window.aAnimations = aAnimations;
 			oCssProps = {};
 			oProps = oAnim.oProps;
 			for( n in oProps ){
-				oCssProps[n] = ( iScrTop - oAnim.iTop ) / ( oAnim.iBottom - oAnim.iTop ) * ( oProps[n][1] - oProps[n][0] ) + oProps[n][0];
+				oCssProps[n] = partialCSSProp( iScrTop, oAnim, oProps[n] );
 				//oCssProps[n] = 0|-( ( iScrTop - oProps[n][0] ) / ( oProps[n][1] - oProps[n][0] ) * ( oProps[n][1] - oProps[n][0] ) + oProps[n][0] );
 			}
 			$node.css( oCssProps );
