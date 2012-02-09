@@ -27,7 +27,7 @@ $(function(){
 		});
 
 	$( 'body' ).on( 'click', 'a', function( ev ){
-		var href = this.getAttribute( 'href' );
+		var href = this.getAttribute( 'href' ) || '';
 
 		if( href.indexOf( '#' ) === 0 ){
 			ev.preventDefault();
