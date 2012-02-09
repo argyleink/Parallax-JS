@@ -253,6 +253,7 @@ $(function(){
 				}
 			}
 		}
+		iPageHeight = Math.max( iPageHeight, ++$sections.last().data().iBottom );
 		$scroller.css( 'height', ( iMaxHeight = iPageHeight ) + iWindowHeight );
 	}
 
