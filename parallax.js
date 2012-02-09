@@ -6,7 +6,7 @@ $(function(){
 	  ,   $scroller = $( '#mock-scroller' )
 	  , fScrPercent = 0
 	  ,  aAnimProps = [ 'opacity', 'left', 'top', 'width', 'height', 'background-position' ]
-	  , iAnimTimeout, iWindowHeight, aAnimations, sLastHash
+	  , iAnimTimeout, iWindowHeight, aAnimations, sLastHash, iMaxHeight
 	  ;
 
 	// find all animatable nodes and store properties
@@ -58,7 +58,7 @@ $(function(){
 		  , i, l, vPropVal, sProp
 		  ;
 
-		$node.addClass( sClass );
+		$node.addClass( sClass ).removeAttr( 'style' );
 
 		for( i=0, l=aAnimProps.length; i<l; i++ ){
 			sProp = aAnimProps[i];
@@ -91,7 +91,7 @@ $(function(){
 			oObj[ sProp ] = vPropVal;
 		}
 
-		$node.removeClass( sClass );
+		$node.removeClass( 'start focus to end' );
 
 		return oObj;
 	}
@@ -139,21 +139,20 @@ $(function(){
 		  ,   sEndStage = stages[ iStage ]
 		  ,   oPropsEnd = readCSSProps( $node, sEndStage )
 		  ,       oData = $node.data()
+		  ,  bPreDefLen = !!iAnimLength
 		  , oPropDiff, n, iDiff
 		  ;
 
 		if( !iAnimLength ){ iAnimLength = 0; }
 
-		// get the diff between this stage and the most recent prior one with a change
-		//while( !( 
-			oPropDiff = propDiff( readCSSProps( $node, stages[ iStartStage ] ), oPropsEnd );
-		//) && iStartStage-- );
+		// get the diff between this stage and the prior one
+		oPropDiff = propDiff( readCSSProps( $node, stages[ iStartStage ] ), oPropsEnd );
 
 		if( !oPropDiff ){ return 0; }
 
 		for( n in oPropDiff ){
 			iDiff = Math.abs( oPropDiff[n][1] - oPropDiff[n][0] );
-			if( iDiff > iAnimLength ){ iAnimLength = iDiff; }
+			if( !bPreDefLen && ( iDiff > iAnimLength ) ){ iAnimLength = iDiff; }
 		}
 
 		aAnimations.push( {
@@ -204,9 +203,9 @@ $(function(){
 				$pNode = $pNodes.eq( i );
 				iMaxPause = Math.max(
 					  iMaxPause
-					,             addDiffAnimation( $pNode, iTop                         , 1, iSecHeight )
-					, iAnimSize = addDiffAnimation( $pNode, iTop + iSecHeight            , 2, iSecHeight )
-					,             addDiffAnimation( $pNode, iTop + iSecHeight + iAnimSize, 3, iSecHeight )
+					,             addDiffAnimation( $pNode, iTop                                     , 1, iSecHeight )
+					, iAnimSize = addDiffAnimation( $pNode, iTop + iSecHeight + iMaxPause            , 2, iSecHeight )
+					,             addDiffAnimation( $pNode, iTop + iSecHeight + iMaxPause + iAnimSize, 3, iSecHeight )
 				);
 			}
 
@@ -250,14 +249,16 @@ $(function(){
 				}
 			}
 		}
-		$scroller.css( 'height', iPageHeight );
+		$scroller.css( 'height', ( iMaxHeight = iPageHeight ) + iWindowHeight );
 window.$sections = $sections;
 window.aAnimations = aAnimations;
-		console.log( 'measurements took ' + ( new Date() - iStartTimer ) + 'ms' )
 	}
 
 	function onResize(){
+		var pTop = ( $window.scrollTop() / $window.height() ) || 0;
+
 		measureAnimations();
+		$window.scrollTop( pTop * $window.height() );
 		onScroll();
 	}
 
@@ -279,10 +280,11 @@ window.aAnimations = aAnimations;
 		var iScrTop = $window.scrollTop()
 		  , i, l, oAnim, $sec, oData
 		  , bChangedLoc = false
-		  , $node, sSecId, n, oCssProps, oProps
+		  , $node, sSecId, n, oCssProps, oProps, iCurScr, sState
 		  ;
 
 		if( iScrTop < 0 ){ iScrTop = 0; }
+		if( iScrTop > iMaxHeight ){ iScrTop = iMaxHeight; }
 
 		// hide/show sections
 		for( i=0, l=$sections.length; i<l; i++ ){
@@ -296,7 +298,7 @@ window.aAnimations = aAnimations;
 				}
 				if( !bChangedLoc ){
 					if( sLastHash != ( sSecId = $sec.attr( 'id' ) ) ){
-						/*location.replace*/( '#' + ( sLastHash = sSecId ) );
+						location.replace( '#' + ( sLastHash = sSecId ).split( '-' ).pop() );
 					}
 					bChangedLoc = true;
 				}
@@ -309,16 +311,30 @@ window.aAnimations = aAnimations;
 		}
 
 		for( i=0, l=aAnimations.length; i<l; i++ ){
-			oAnim = aAnimations[i];
-			$node = oAnim.$node;
+			oAnim   = aAnimations[i];
+			$node   = oAnim.$node;
+			iCurScr = iScrTop;
 
-			if( ( oAnim.iTop > iScrTop ) || ( oAnim.iBottom < iScrTop ) ){ continue; }
+			if( ( oAnim.iTop > iCurScr ) || ( oAnim.iBottom < iCurScr ) ){
+				sState = oAnim.lastState;
+				oAnim.lastState = 'disabled';
+
+				// animation is newly disabled
+				if( sState === 'enabled' ){
+					iCurScr = ( oAnim.iTop > iCurScr ) ? oAnim.iTop : oAnim.iBottom;
+				}else{
+					continue;
+				}
+				
+			}else{
+				oAnim.lastState = 'enabled';
+			}
 
 			// in the middle of an animation
 			oCssProps = {};
 			oProps = oAnim.oProps;
 			for( n in oProps ){
-				oCssProps[n] = partialCSSProp( iScrTop, oAnim, oProps[n] );
+				oCssProps[n] = partialCSSProp( iCurScr, oAnim, oProps[n] );
 				//oCssProps[n] = 0|-( ( iScrTop - oProps[n][0] ) / ( oProps[n][1] - oProps[n][0] ) * ( oProps[n][1] - oProps[n][0] ) + oProps[n][0] );
 			}
 			$node.css( oCssProps );
