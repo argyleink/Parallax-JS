@@ -196,7 +196,7 @@ $(function(){
 
 			// append section to content and reset position
 			$sec
-				.css({ top : '' })
+				.css({ top : '', visibility: 'hidden' })
 				.appendTo( $content );
 
 			if( ix ){
@@ -223,7 +223,7 @@ $(function(){
 				addDiffAnimation( $sec, iTop + iSecHeight, 3 );
 			}
 
-			$sec.detach();
+			$sec.detach().css({ visibility: 'visible' });
 
 			oData.endsAt = iTop += iSecHeight;
 		} );
@@ -294,7 +294,7 @@ $(function(){
 			$sec  = $sections.eq(i);
 			oData = $sec.data();
 
-			if( ( oData.iTop <= iScrTop ) && ( oData.iBottom >= ( iScrTop/* + iWindowHeight*/ ) ) ){
+			if( ( oData.iTop <= iScrTop ) && ( oData.iBottom >= ( iScrTop ) ) ){
 				if( !oData.bVisible ){
 					$sec.appendTo( $content );
 					oData.bVisible = true;
