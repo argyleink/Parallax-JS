@@ -1,17 +1,15 @@
 $(function(){
-	var     $window = $( window )
-	  ,       $body = $( 'body' )
-	  ,    $content = $( '#content' )
-	  ,   $sections = $content.find( 'section' )
-	  ,   $scroller = $( '#mock-scroller' )
-	  , fScrPercent = 0
-	  ,  aAnimProps = [ 'opacity', 'left', 'top', 'width', 'height', 'background-position' ]
-	  ,       sHash = location.hash
-	  , iAnimTimeout, iWindowHeight, aAnimations, sLastHash, iMaxHeight
+	var      $window = $( window )
+	  ,        $body = $( 'body' )
+	  , $bodyAndHTML = $body.add( 'html' )
+	  ,     $content = $( '#content' )
+	  ,    $sections = $content.find( 'section' )
+	  ,    $scroller = $( '#mock-scroller' )
+	  ,  fScrPercent = 0
+	  ,   aAnimProps = [ 'opacity', 'left', 'top', 'width', 'height', 'background-position' ]
+	  ,        sHash = location.hash
+	  , iAnimTimeout, iWindowHeight, aAnimations, sLastHash, iMaxHeight, iWinScrTop
 	  ;
-
-	window.$sections   = $sections;
-	window.aAnimations = aAnimations;
 
 	// find all animatable nodes and store properties
 	$sections.each( function( ix ){
@@ -179,7 +177,7 @@ $(function(){
 		  , oAnim, oData
 		  ;
 
-		aAnimations = [];
+		aAnimations = window.aAnimations = [];
 		$scroller.css( 'height', 10000 );
 
 		// add animations for each section & .animate tag in each section
@@ -286,6 +284,8 @@ $(function(){
 		  , $node, sSecId, n, oCssProps, oProps, iCurScr, sState
 		  ;
 
+		iWinScrTop = iScrTop;
+
 		if( iScrTop < 0 ){ iScrTop = 0; }
 		if( iScrTop > iMaxHeight ){ iScrTop = iMaxHeight; }
 
@@ -345,15 +345,46 @@ $(function(){
 		}
 	}
 
+	window.getAnimationController = function( sSelector ){
+		var oAnim, i, l;
+
+		for( i=0, l=aAnimations.length; i<l; i++ ){
+			if( aAnimations[i].$node.is( sSelector ) ){
+				oAnim = aAnimations[i];
+				break;
+			}
+		}
+
+		if( !oAnim ){
+			throw new Error( 'no animation matches selector ' + sSelector );
+		}
+
+		return {
+			scrollTo: function( iTop ){
+				iTop += oAnim.iTop;
+				iTop = Math.max( oAnim.iTop, Math.min( oAnim.iBottom, iTop ) );
+
+				$bodyAndHTML.scrollTop( iTop );
+			}
+
+			, scrollBy : function( iTop ){
+				iTop = iWinScrTop + iTop;
+				iTop = Math.max( oAnim.iTop, Math.min( oAnim.iBottom, iTop ) );
+
+				$bodyAndHTML.scrollTop( iTop );
+			}
+		}
+	}
+
 	window.scrollToSection = function( sSec, immediate ){
 		var $sect = $sections.filter( '#story-' + sSec )
 		  , oData = $sect.data()
 		  ,   top = oData.iTop + ( $sections[0] === $sect[0] ? 0 : iWindowHeight + 1 );
 
 		if( immediate ){
-			$body.add( 'html' ).scrollTop( top );
+			$bodyAndHTML.scrollTop( top );
 		}else{
-			$body.add( 'html' ).animate({ scrollTop: top }, 1000);
+			$bodyAndHTML.animate({ scrollTop: top }, 1000);
 		}
 	}
 
