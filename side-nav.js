@@ -2,7 +2,7 @@ $(function(){
 	var   $nav = $( '#nav' )
 	  , aRules = [];
 
-	$sections.each( function(){
+	$( 'section' ).each( function(){
 		var  $this = $( this )
 		  , sTitle = $this.attr( 'data-nav' ) || $this.find( 'h2:first' ).text()
 		  ,    sId = $this.attr( 'id' ).split( '-' ).pop()
