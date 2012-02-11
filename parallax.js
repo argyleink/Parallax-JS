@@ -300,7 +300,7 @@ $(function(){
 
 			function nextScrollTick(){
 				var   now = +new Date()
-				  , iStep = ( now - cDate ) / iDiff;
+				  , iStep = ( now + 30 - cDate ) / iDiff;
 				
 				if( iStep > 1 ){ iStep = 1; }
 
