@@ -8,7 +8,7 @@ $(function(){
 	  ,  fScrPercent = 0
 	  ,   aAnimProps = [ 'opacity', 'left', 'top', 'width', 'height', 'background-position' ]
 	  ,        sHash = location.hash
-	  , iAnimTimeout, iWindowHeight, aAnimations, sLastHash, iMaxHeight, iWinScrTop
+	  , iAnimTimeout, iWindowHeight, aAnimations, sLastHash, iMaxHeight, iWinScrTop, iLastScrTime, iScrTimeout
 	  ;
 
 	// find all animatable nodes and store properties
@@ -277,10 +277,46 @@ $(function(){
 		}
 	}
 
-	function onScroll(){
-		var iScrTop = $window.scrollTop()
+	function onScrollHandler(){
+		var   cDate = +new Date()
+		  , iScrTop = $window.scrollTop()
+		  ,   iDiff = cDate - iLastScrTime
+		  ;
+
+		iLastScrTime = cDate;
+		if( iScrTimeout ){
+			clearTimeout( iScrTimeout );
+			iScrTimeout = 0;
+		}
+
+		if( ( iDiff > 200 ) || ( iDiff < 50 ) ){
+			onScroll( iScrTop );
+		}else{
+
+			// stupid browser scrolling is too slow, fix it
+			var iLastTop = iWinScrTop
+			  , iScrDiff = iScrTop - iLastTop
+			  ;
+
+			function nextScrollTick(){
+				var   now = +new Date()
+				  , iStep = ( now - cDate ) / iDiff;
+				
+				if( iStep > 1 ){ iStep = 1; }
+
+				onScroll( iLastTop + iScrDiff * iStep )
+
+				if( iStep < 1 ){
+					iScrTimeout = setTimeout( nextScrollTick, 30 );
+				}
+			}
+			nextScrollTick();
+		}
+	}
+
+	function onScroll( iScrTop ){
+		var bChangedLoc = false
 		  , i, l, oAnim, $sec, oData
-		  , bChangedLoc = false
 		  , $node, sSecId, n, oCssProps, oProps, iCurScr, sState
 		  ;
 
@@ -409,5 +445,5 @@ $(function(){
 			iWindowHeight = $window.height();
 		})
 		.trigger( 'resize' )
-		.bind( 'scroll', onScroll );
+		.bind( 'scroll', onScrollHandler );
 });
