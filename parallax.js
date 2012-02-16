@@ -8,6 +8,7 @@ $(function(){
 	  ,  fScrPercent = 0
 	  ,   aAnimProps = [ 'opacity', 'left', 'top', 'width', 'height', 'background-position' ]
 	  ,        sHash = location.hash
+	  ,  bAllowAnims = !~location.href.indexOf( 'noanims' )
 	  , iAnimTimeout, iWindowHeight, aAnimations, sLastHash, iMaxHeight, iWinScrTop, iLastScrTime, iScrTimeout
 	  ;
 
@@ -203,12 +204,15 @@ $(function(){
 
 			for( i=0, l=$pNodes.length; i<l; i++ ){
 				$pNode = $pNodes.eq( i );
-				iMaxPause = Math.max(
-					  iMaxPause
-					,             addDiffAnimation( $pNode, iTop                                     , 1, iSecHeight )
-					, iAnimSize = addDiffAnimation( $pNode, iTop + iSecHeight + iMaxPause            , 2, iSecHeight )
-					,             addDiffAnimation( $pNode, iTop + iSecHeight + iMaxPause + iAnimSize, 3, iSecHeight )
-				);
+
+				if( bAllowAnims ){
+					iMaxPause = Math.max(
+						  iMaxPause
+						,             addDiffAnimation( $pNode, iTop                                     , 1, iSecHeight )
+						, iAnimSize = addDiffAnimation( $pNode, iTop + iSecHeight + iMaxPause            , 2, iSecHeight )
+						,             addDiffAnimation( $pNode, iTop + iSecHeight + iMaxPause + iAnimSize, 3, iSecHeight )
+					);
+				}
 			}
 
 			if( ix ){
