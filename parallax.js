@@ -223,7 +223,8 @@ $(function(){
 
 			$sec.detach().css({ visibility: 'visible' });
 
-			oData.endsAt = iTop += iSecHeight;
+			oData.endsAt   = iTop += iSecHeight;
+			oData.bVisible = false;
 		} );
 
 		// wipe start/end positions on sections
@@ -256,10 +257,10 @@ $(function(){
 	}
 
 	function onResize(){
-		var pTop = ( $window.scrollTop() / $window.height() ) || 0;
+		var pTop = ( iWinScrTop / iMaxHeight ) || 0;
 
 		measureAnimations();
-		$window.scrollTop( pTop * $window.height() );
+		$window.scrollTop( pTop * iMaxHeight );
 		onScroll();
 	}
 
@@ -296,7 +297,7 @@ $(function(){
 			// stupid browser scrolling is too slow, fix it
 			var iLastTop = iWinScrTop
 			  , iScrDiff = iScrTop - iLastTop
-			  ;
+			  ;	
 
 			function nextScrollTick(){
 				var   now = +new Date()
@@ -319,6 +320,8 @@ $(function(){
 		  , i, l, oAnim, $sec, oData
 		  , $node, sSecId, n, oCssProps, oProps, iCurScr, sState
 		  ;
+
+		iScrTop || ( iScrTop = $window.scrollTop() );
 
 		iWinScrTop = iScrTop;
 
