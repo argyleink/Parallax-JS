@@ -9,7 +9,8 @@ $(function(){
 	  ,   aAnimProps = [ 'opacity', 'left', 'top', 'width', 'height', 'background-position' ]
 	  ,        sHash = location.hash
 	  ,  bAllowAnims = !~location.href.indexOf( 'noanims' )
-	  , iAnimTimeout, iWindowHeight, aAnimations, sLastHash, iMaxHeight, iWinScrTop, iLastScrTime, iScrTimeout
+	  ,  aAnimations = []
+	  , iAnimTimeout, iWindowHeight, sLastHash, iMaxHeight, iWinScrTop, iLastScrTime, iScrTimeout
 	  ;
 
 	// find all animatable nodes and store properties
