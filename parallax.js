@@ -10,7 +10,7 @@ $(function(){
 	  ,        sHash = location.hash
 	  ,  bAllowAnims = !~location.href.indexOf( 'noanims' )
 	  ,  aAnimations = []
-	  , iAnimTimeout, iWindowHeight, sLastHash, iMaxHeight, iWinScrTop, iLastScrTime, iScrTimeout
+	  , iAnimTimeout, iWindowHeight, sLastHash, iMaxHeight, iWinScrTop, iLastScrTime, iScrTimeout, sWinSize
 	  ;
 
 	// find all animatable nodes and store properties
@@ -450,6 +450,11 @@ $(function(){
 		 * - adjust top position so that it's at the same %, not same px
 		 **/
 		.bind( 'resize', function(){
+			// patch IE which keeps triggering resize events when elements are resized
+			var sCurWinSize = $window.width() + 'x' + $window.height();
+			if( sCurWinSize === sWinSize ){ return; }
+			sWinSize = sCurWinSize;
+
 			if( iAnimTimeout ){ clearTimeout( iAnimTimeout ); }
 			iAnimTimeout = setTimeout( onResize, 50 );
 
