@@ -267,6 +267,7 @@ $(function(){
 		var pTop = ( iWinScrTop / iMaxHeight ) || 0;
 
 		measureAnimations();
+		$window.trigger( 'post-resize-anim' );
 		$window.scrollTop( pTop * iMaxHeight );
 		onScroll();
 	}
