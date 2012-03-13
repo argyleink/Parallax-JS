@@ -10,8 +10,8 @@ $(function(){
 	  ,        sHash = location.hash
 	  ,  bAllowAnims = !~location.href.indexOf( 'noanims' )
 	  ,  aAnimations = []
-	  ,    webkitCSS = ({}).hasOwnProperty.apply( document.body.style, [ 'webkitTransform' ] )
-	  ,       mozCSS = !!$('<div style="-moz-transform:translateX(10px)"></div>')[0].style['MozTransform']
+	  ,    webkitCSS = document.body.style[ 'webkitTransform' ] !== undefined
+	  ,       mozCSS = document.body.style[ 'MozTransform'    ] !== undefined
 	  , iAnimTimeout, iWindowHeight, sLastHash, iMaxHeight, iWinScrTop, iLastScrTime, iScrTimeout, sWinSize, kinetics
 	  ;
 
