@@ -217,7 +217,7 @@ $(function(){
 			}
 
 			if( ix ){
-				iTop += iMaxPause;
+				iTop += iMaxPause; // Math.max( iSecHeight, iMaxPause, $sec.outerHeight() );
 			}
 
 			addDiffAnimation( $sec, iTop + iSecHeight, 2 );
