@@ -10,7 +10,9 @@ $(function(){
 	  ,        sHash = location.hash
 	  ,  bAllowAnims = !~location.href.indexOf( 'noanims' )
 	  ,  aAnimations = []
-	  , iAnimTimeout, iWindowHeight, sLastHash, iMaxHeight, iWinScrTop, iLastScrTime, iScrTimeout, sWinSize
+	  ,    webkitCSS = ({}).hasOwnProperty.apply( document.body.style, [ 'webkitTransform' ] )
+	  ,       mozCSS = !!$('<div style="-moz-transform:translateX(10px)"></div>')[0].style['MozTransform']
+	  , iAnimTimeout, iWindowHeight, sLastHash, iMaxHeight, iWinScrTop, iLastScrTime, iScrTimeout, sWinSize, kinetics
 	  ;
 
 	// find all animatable nodes and store properties
@@ -270,6 +272,10 @@ $(function(){
 		$window.trigger( 'post-resize-anim' );
 		$window.scrollTop( pTop * iMaxHeight );
 		onScroll();
+
+		kinetics
+			.adjustRange( iMaxHeight )
+			.setPosition( pTop * iMaxHeight );
 	}
 
 	function singlePartialCSSProp( iScrTop, oAnim, oProp ){
@@ -385,13 +391,53 @@ $(function(){
 			oCssProps = {};
 			oProps = oAnim.oProps;
 			for( n in oProps ){
-				oCssProps[n] = partialCSSProp( iCurScr, oAnim, oProps[n] );
+				oCssProps[ n ] = partialCSSProp( iCurScr, oAnim, oProps[n] );
 				//oCssProps[n] = 0|-( ( iScrTop - oProps[n][0] ) / ( oProps[n][1] - oProps[n][0] ) * ( oProps[n][1] - oProps[n][0] ) + oProps[n][0] );
 			}
-			$node.css( oCssProps );
+			$node.css( hardwareCSSTransform( oCssProps ) );
 		}
 	}
 
+	function hardwareCSSTransform( props ){
+		if( props.top || props.left ){
+			if( webkitCSS ){
+				props.webkitTransform = 'translate3d(' + ( props.left || 0 ) + 'px, ' + ( props.top || 0 ) + 'px, 0)';
+
+				if( props.top  ){ props.top  = 0; }
+				if( props.left ){ props.left = 0; }
+			}
+
+			if( mozCSS ){
+				props.MozTransform = ( props.top ? 'translateY(' + props.top + 'px)' : '' ) + ( props.left ? 'translateX(' + props.left + 'px)' : '' );
+				
+				if( props.top  ){ props.top  = 0; }
+				if( props.left ){ props.left = 0; }
+			}
+		}
+
+		return props;
+	}
+
+    // if (el.style.hasOwnProperty('webkitTransform')) {
+    //     scroller.onPositionChanged = function (y) {
+    //         el.style.webkitTransform = 'translate3d(0, -' + Math.floor(y) + 'px, 0)';
+    //     };
+    // }
+
+    // if (!scroller.onPositionChanged && el.style.hasOwnProperty('MozTransform')) {
+    //     scroller.onPositionChanged = function (y) {
+    //         el.style.MozTransform = 'translateY(-' + Math.floor(y) + 'px)';
+    //     };
+    // }
+
+    // // Fall back to CSS positioning.
+    // if (!scroller.onPositionChanged) {
+    //     el.style.position = 'absolute';
+    //     el.style.left = 0;
+    //     scroller.onPositionChanged = function (y) {
+    //         el.style.top = '-' + Math.floor(y) + 'px';
+    //     };
+    // }
 	window.getAnimationController = function( sSelector ){
 		var oAnim, i, l;
 
@@ -440,6 +486,14 @@ $(function(){
 			scrollToSection( sHash.substr( 1 ), true );
 		}, 100 );
 	}
+
+	/* touch move kinetics */
+	kinetics = new Kinetics( window );
+	window.kinetics = kinetics;
+	kinetics.bind( 'move', function( ev, y ){
+		onScroll( y );
+	} );
+
 
 	$window
 		/**
