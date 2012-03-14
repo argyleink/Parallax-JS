@@ -1,5 +1,7 @@
 # A Parallax JavaScript library based on HTML / CSS
 
+[Demo](http://razorfish.github.com/Parallax-JS)
+
 ## Usage
 
 Any `<section>` tag, along with any element with the `animate` class is parsed for parallax effects.  `<section>` tags are assumed to line up one-after-another, all other tags can have any effect desired.
