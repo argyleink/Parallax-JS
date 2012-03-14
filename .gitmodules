@@ -1,0 +1,3 @@
+[submodule "Parallax"]
+	path = Parallax
+	url = git@github.com:razorfish/Parallax.js.git
