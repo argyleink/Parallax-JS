@@ -12,6 +12,7 @@ $(function(){
 	  ,  aAnimations = []
 	  ,    webkitCSS = document.body.style[ 'webkitTransform' ] !== undefined
 	  ,       mozCSS = document.body.style[ 'MozTransform'    ] !== undefined
+	  ,        msCSS = document.body.style[ 'msTransform'     ] !== undefined
 	  , iAnimTimeout, iWindowHeight, sLastHash, iMaxHeight, iWinScrTop, iLastScrTime, iScrTimeout, sWinSize, kinetics
 	  ;
 
@@ -304,6 +305,7 @@ $(function(){
 			iScrTimeout = 0;
 		}
 
+		// last tick was either recent enough or a while ago.  pass through
 		if( ( iDiff > 200 ) || ( iDiff < 50 ) ){
 			onScroll( iScrTop );
 		}else{
@@ -399,45 +401,25 @@ $(function(){
 	}
 
 	function hardwareCSSTransform( props ){
-		if( props.top || props.left ){
+		if( props.top!=null || props.left!=null ){
 			if( webkitCSS ){
 				props.webkitTransform = 'translate3d(' + ( props.left || 0 ) + 'px, ' + ( props.top || 0 ) + 'px, 0)';
 
-				if( props.top  ){ props.top  = 0; }
-				if( props.left ){ props.left = 0; }
+				if( null != props.top  ){ props.top  = 0; }
+				if( null != props.left ){ props.left = 0; }
 			}
 
-			if( mozCSS ){
-				props.MozTransform = ( props.top ? 'translateY(' + props.top + 'px)' : '' ) + ( props.left ? 'translateX(' + props.left + 'px)' : '' );
+			if( mozCSS || msCSS ){
+				props[ mozCSS ? 'MozTransform' : 'msTransform' ] = ( props.top ? 'translateY(' + props.top + 'px)' : '' ) + ( props.left ? 'translateX(' + props.left + 'px)' : '' );
 				
-				if( props.top  ){ props.top  = 0; }
-				if( props.left ){ props.left = 0; }
+				if( null != props.top  ){ props.top  = 0; }
+				if( null != props.left ){ props.left = 0; }
 			}
 		}
 
 		return props;
 	}
 
-    // if (el.style.hasOwnProperty('webkitTransform')) {
-    //     scroller.onPositionChanged = function (y) {
-    //         el.style.webkitTransform = 'translate3d(0, -' + Math.floor(y) + 'px, 0)';
-    //     };
-    // }
-
-    // if (!scroller.onPositionChanged && el.style.hasOwnProperty('MozTransform')) {
-    //     scroller.onPositionChanged = function (y) {
-    //         el.style.MozTransform = 'translateY(-' + Math.floor(y) + 'px)';
-    //     };
-    // }
-
-    // // Fall back to CSS positioning.
-    // if (!scroller.onPositionChanged) {
-    //     el.style.position = 'absolute';
-    //     el.style.left = 0;
-    //     scroller.onPositionChanged = function (y) {
-    //         el.style.top = '-' + Math.floor(y) + 'px';
-    //     };
-    // }
 	window.getAnimationController = function( sSelector ){
 		var oAnim, i, l;
 

@@ -175,9 +175,11 @@
 			return false;
 		}
 
-		el.addEventListener( 'touchstart', tap   );
-		el.addEventListener( 'touchmove' , drag  );
-		el.addEventListener( 'touchend'  , untap );
+		if( el.addEventListener ){
+			el.addEventListener( 'touchstart', tap   );
+			el.addEventListener( 'touchmove' , drag  );
+			el.addEventListener( 'touchend'  , untap );
+		}
 
 		return $watcher;
 	}
