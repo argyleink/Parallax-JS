@@ -183,7 +183,7 @@ $(function(){
 		  ;
 
 		aAnimations = window.aAnimations = [];
-		$scroller.css( 'height', 10000 );
+		$scroller.css( 'width', 10000 );
 
 		// add animations for each section & .animate tag in each section
 		$sections.each( function( ix ){
@@ -261,7 +261,7 @@ $(function(){
 			}
 		}
 		iPageHeight = Math.max( iPageHeight, ++$sections.last().data().iBottom );
-		$scroller.css( 'height', ( iMaxHeight = iPageHeight ) + iWindowHeight );
+		$scroller.css( 'width', ( iMaxHeight = iPageHeight ) + iWindowHeight );
 
 		$window.trigger( 'animations-added', { animations: aAnimations } );
 	}
