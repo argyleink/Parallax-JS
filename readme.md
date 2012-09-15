@@ -1,6 +1,6 @@
-# A Parallax JavaScript library based on HTML / CSS
+# A Sideways Parallax JavaScript library based on HTML / CSS
 
-[Demo](http://razorfish.github.com/Parallax-JS)
+[Demo](http://argyleink.github.com/Parallax-JS)
 
 ## Usage
 
