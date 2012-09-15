@@ -6,14 +6,14 @@ $(function(){
 	  ,    $sections = $content.find( 'section' )
 	  ,    $scroller = $( '#mock-scroller' )
 	  ,  fScrPercent = 0
-	  ,   aAnimProps = [ 'opacity', 'left', 'top', 'width', 'height', 'background-position' ]
+	  ,   aAnimProps = [ 'opacity', 'top', 'left', 'width', 'height', 'background-position' ]
 	  ,        sHash = location.hash
 	  ,  bAllowAnims = !~location.href.indexOf( 'noanims' )
 	  ,  aAnimations = []
 	  ,    webkitCSS = document.body.style[ 'webkitTransform' ] !== undefined
 	  ,       mozCSS = document.body.style[ 'MozTransform'    ] !== undefined
 	  ,        msCSS = document.body.style[ 'msTransform'     ] !== undefined
-	  , iAnimTimeout, iWindowHeight, sLastHash, iMaxHeight, iWinScrTop, iLastScrTime, iScrTimeout, sWinSize, kinetics
+	  , iAnimTimeout, iWindowWidth, sLastHash, iMaxWidth, iWinScrTop, iLastScrTime, iScrTimeout, sWinSize, kinetics
 	  ;
 
 	// find all animatable nodes and store properties
@@ -178,19 +178,19 @@ $(function(){
 		var         iTop = 0
 		  ,  iStartTimer = +new Date()
 		  , iLastSection = $sections.length - 1
-		  ,  iPageHeight = 0
+		  ,  iPageWidth = 0
 		  , oAnim, oData
 		  ;
 
 		aAnimations = window.aAnimations = [];
-		$scroller.css( 'height', 10000 );
+		$scroller.css( 'width', 10000 );
 
 		// add animations for each section & .animate tag in each section
 		$sections.each( function( ix ){
 			var       $sec = $( this )
 			  ,      oData = $sec.data()
 			  ,    $pNodes = oData.$pNodes
-			  , iSecHeight = 0
+			  , iSecWidth = 0
 			  ,  iMaxPause = oData.iPause
 			  , i, l, iAnimSize, $pNode
 			  ;
@@ -199,11 +199,11 @@ $(function(){
 
 			// append section to content and reset position
 			$sec
-				.css({ top : '', visibility: 'hidden' })
+				.css({ left : '', visibility: 'hidden' })
 				.appendTo( $content );
 
 			if( ix ){
-				iSecHeight = addDiffAnimation( $sec, iTop, 1 );
+				iSecWidth = addDiffAnimation( $sec, iTop, 1 );
 			}
 
 			for( i=0, l=$pNodes.length; i<l; i++ ){
@@ -212,26 +212,26 @@ $(function(){
 				if( bAllowAnims ){
 					iMaxPause = Math.max(
 						  iMaxPause
-						,             addDiffAnimation( $pNode, iTop                                     , 1, iSecHeight )
-						, iAnimSize = addDiffAnimation( $pNode, iTop + iSecHeight + iMaxPause            , 2, iSecHeight )
-						,             addDiffAnimation( $pNode, iTop + iSecHeight + iMaxPause + iAnimSize, 3, iSecHeight )
+						,             addDiffAnimation( $pNode, iTop                                     , 1, iSecWidth )
+						, iAnimSize = addDiffAnimation( $pNode, iTop + iSecWidth + iMaxPause            , 2, iSecWidth )
+						,             addDiffAnimation( $pNode, iTop + iSecWidth + iMaxPause + iAnimSize, 3, iSecWidth )
 					);
 				}
 			}
 
 			if( ix ){
-				iTop += iMaxPause; // Math.max( iSecHeight, iMaxPause, $sec.outerHeight() );
+				iTop += iMaxPause; // Math.max( iSecWidth, iMaxPause, $sec.outerHeight() );
 			}
 
-			addDiffAnimation( $sec, iTop + iSecHeight, 2 );
+			addDiffAnimation( $sec, iTop + iSecWidth, 2 );
 
 			if( ix < iLastSection ){
-				addDiffAnimation( $sec, iTop + iSecHeight, 3 );
+				addDiffAnimation( $sec, iTop + iSecWidth, 3 );
 			}
 
 			$sec.detach().css({ visibility: 'visible' });
 
-			oData.endsAt   = iTop += iSecHeight;
+			oData.endsAt   = iTop += iSecWidth;
 			oData.bVisible = false;
 		} );
 
@@ -245,8 +245,8 @@ $(function(){
 		for( i=0, l=aAnimations.length; i<l; i++ ){
 			oAnim = aAnimations[i];
 
-			if( oAnim.iBottom > iPageHeight ){
-				iPageHeight = oAnim.iBottom;
+			if( oAnim.iBottom > iPageWidth ){
+				iPageWidth = oAnim.iBottom;
 			}
 
 			if( oAnim.bSection ){
@@ -260,23 +260,23 @@ $(function(){
 				}
 			}
 		}
-		iPageHeight = Math.max( iPageHeight, ++$sections.last().data().iBottom );
-		$scroller.css( 'height', ( iMaxHeight = iPageHeight ) + iWindowHeight );
+		iPageWidth = Math.max( iPageWidth, ++$sections.last().data().iBottom );
+		$scroller.css( 'width', ( iMaxWidth = iPageWidth ) + iWindowWidth );
 
 		$window.trigger( 'animations-added', { animations: aAnimations } );
 	}
 
 	function onResize(){
-		var pTop = ( iWinScrTop / iMaxHeight ) || 0;
+		var pTop = ( iWinScrTop / iMaxWidth ) || 0;
 
 		measureAnimations();
 		$window.trigger( 'post-resize-anim' );
-		$window.scrollTop( pTop * iMaxHeight );
+		$window.scrollTop( pTop * iMaxWidth );
 		onScroll();
 
 		kinetics
-			.adjustRange( iMaxHeight )
-			.setPosition( pTop * iMaxHeight );
+			.adjustRange( iMaxWidth )
+			.setPosition( pTop * iMaxWidth );
 	}
 
 	function singlePartialCSSProp( iScrTop, oAnim, oProp ){
@@ -295,7 +295,7 @@ $(function(){
 
 	function onScrollHandler(){
 		var   cDate = +new Date()
-		  , iScrTop = $window.scrollTop()
+		  , iScrTop = $window.scrollLeft()
 		  ,   iDiff = cDate - iLastScrTime
 		  ;
 
@@ -337,12 +337,12 @@ $(function(){
 		  , $node, sSecId, n, oCssProps, oProps, iCurScr, sState
 		  ;
 
-		iScrTop || ( iScrTop = $window.scrollTop() );
+		iScrTop || ( iScrTop = $window.scrollLeft() );
 
 		iWinScrTop = iScrTop;
 
 		if( iScrTop < 0 ){ iScrTop = 0; }
-		if( iScrTop > iMaxHeight ){ iScrTop = iMaxHeight; }
+		if( iScrTop > iMaxWidth ){ iScrTop = iMaxWidth; }
 
 		// hide/show sections
 		for( i=0, l=$sections.length; i<l; i++ ){
@@ -403,7 +403,7 @@ $(function(){
 	function hardwareCSSTransform( props ){
 		if( props.top!=null || props.left!=null ){
 			if( webkitCSS ){
-				props.webkitTransform = 'translate3d(' + ( props.left || 0 ) + 'px, ' + ( props.top || 0 ) + 'px, 0)';
+				props.webkitTransform = 'translate3d(' + ( props.top || 0 ) + 'px, ' + ( props.left || 0 ) + 'px, 0)';
 
 				if( null != props.top  ){ props.top  = 0; }
 				if( null != props.left ){ props.left = 0; }
@@ -454,7 +454,7 @@ $(function(){
 	window.scrollToSection = function( sSec, immediate ){
 		var $sect = $sections.filter( '#story-' + sSec )
 		  , oData = $sect.data()
-		  ,   top = oData.iTop + ( $sections[0] === $sect[0] ? 0 : iWindowHeight + 1 );
+		  ,   top = oData.iTop + ( $sections[0] === $sect[0] ? 0 : iWindowWidth + 1 );
 
 		if( immediate ){
 			$bodyAndHTML.scrollTop( top );
@@ -494,7 +494,7 @@ $(function(){
 			if( iAnimTimeout ){ clearTimeout( iAnimTimeout ); }
 			iAnimTimeout = setTimeout( onResize, 50 );
 
-			iWindowHeight = $window.height();
+			iWindowWidth = $window.width();
 		})
 		.trigger( 'resize' )
 		.bind( 'scroll', onScrollHandler );

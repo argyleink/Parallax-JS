@@ -8,7 +8,7 @@ body {
 	min-width   : 1080px;
 	padding     : 0px;
 	font-family : "Caecilia-Light", 'Helvetica Neue', Arial, Helvetica, sans-serif;
-	overflow-x  : hidden;
+	overflow-x  : auto;
 }
 
 #content {
@@ -39,6 +39,10 @@ p, ul {
 	font-weight      : 200;
 	font-style       : normal;
 	list-style       : none;
+}
+
+#mock-scroller {
+	height: 1px;
 }
 
 #header ul li {
